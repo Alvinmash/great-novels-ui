@@ -1,29 +1,35 @@
-const models = require('../models')
+import models from '../models'
 
-const getAllNovels = async (request, response) => {
-  const novels = await models.Novels.findAll({
-    include: [{ model: models.Authors }, { model: models.Genres }]
-  })
+export const getAllNovels = async (request, response) => {
+  try {
+    const novels = await models.Novels.findAll({
+      include: [{ model: models.Authors }, { model: models.Genres }],
+    })
 
-  return response.send(novels)
+    return response.send(novels)
+  } catch (error) {
+    return response.status(500).send('Could not reach the database, please try again.')
+  }
 }
 
-const getNovelByIdOrTitle = async (request, response) => {
-  const { identifier } = request.params
+export const getNovelByIdOrTitle = async (request, response) => {
+  try {
+    const { identifier } = request.params
 
-  const novel = await models.Novels.findOne({
-    where: {
-      [models.Sequelize.Op.or]: [
-        { id: identifier },
-        { title: { [models.Sequelize.Op.like]: `%${identifier}%` } },
-      ]
-    },
-    include: [{ model: models.Authors }, { model: models.Genres }]
-  })
+    const novel = await models.Novels.findOne({
+      where: {
+        [models.Sequelize.Op.or]: [
+          { id: identifier },
+          { title: { [models.Sequelize.Op.like]: `%${identifier}%` } },
+        ],
+      },
+      include: [{ model: models.Authors }, { model: models.Genres }],
+    })
 
-  return novel
-    ? response.send(novel)
-    : response.sendStatus(404)
+    return novel
+      ? response.send(novel)
+      : response.sendStatus(404)
+  } catch (error) {
+    return response.status(500).send('Could not reach the database, please try again.')
+  }
 }
-
-module.exports = { getAllNovels, getNovelByIdOrTitle }
